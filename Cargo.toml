@@ -1,0 +1,22 @@
+[package]
+name = "write-bench"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "my_bench"
+path = "src/lib.rs"
+
+[[bench]]
+name = "write_tcp"
+harness = false
+
+
+[dependencies]
+anyhow = "1.0.79"
+bytes = "1.5.0"
+tokio = { version = "1", features = ["full"] }
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["async_tokio"] }
