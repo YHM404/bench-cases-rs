@@ -1,25 +1,20 @@
+use anyhow::Result;
 use tokio::{io::AsyncReadExt, net::TcpListener};
 
 #[tokio::main]
-async fn main() {
-    init_tcp_server().await;
+async fn main() -> Result<()> {
+    init_tcp_server().await
 }
 
-pub async fn init_tcp_server() {
-    let server = TcpListener::bind("[::1]:8080").await.unwrap();
+pub async fn init_tcp_server() -> Result<()> {
+    let server = TcpListener::bind("[::1]:8080").await?;
     loop {
-        let (mut socket, _) = server.accept().await.unwrap();
+        let (mut socket, _) = server.accept().await?;
         let mut buf = [0; 200000];
         loop {
-            match socket.read(&mut buf).await {
-                Ok(0) => {
-                    break;
-                }
-                Ok(_) => {}
-                Err(e) => {
-                    eprintln!("failed to read from socket; err = {:?}", e);
-                    return;
-                }
+            if socket.read(&mut buf).await? == 0 {
+                eprintln!("socket closed");
+                break;
             }
         }
     }

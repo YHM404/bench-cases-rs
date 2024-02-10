@@ -52,6 +52,8 @@ fn criterion_benchmark(c: &mut Criterion) {
             }
         });
     });
+
+    group.finish();
 }
 
 criterion_group!(benches, criterion_benchmark);
