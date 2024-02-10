@@ -12,7 +12,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let prepare_data = || vec![Bytes::from(vec![0; data_size]); data_batch];
     let runtime = utils::new_tokio_runtime();
 
-    let mut group = c.benchmark_group("write");
+    let mut group = c.benchmark_group("tcp-write");
     group.bench_function("write", |b| {
         b.to_async(&runtime).iter(|| {
             let data = prepare_data();
