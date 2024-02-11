@@ -2,7 +2,10 @@ use anyhow::Result;
 use bytes::Bytes;
 use clap::{command, Parser};
 use my_bench::{write_all, write_buffer, writev};
-use tokio::net::TcpStream;
+use tokio::{
+    io::{AsyncWrite, BufWriter},
+    net::TcpStream,
+};
 
 #[derive(Parser, Debug)]
 enum WriteType {
@@ -37,12 +40,17 @@ async fn main() -> Result<()> {
 
     let data = vec![Bytes::from(vec![0; data_size]); data_batch];
 
-    let mut client = TcpStream::connect("[::1]:8080").await?;
+    let client = TcpStream::connect("[::1]:8080").await?;
+    let mut writer: Box<dyn AsyncWrite + Unpin> = match write_type {
+        WriteType::Buffer => Box::new(BufWriter::with_capacity(data_batch * data_size, client)),
+        _ => Box::new(client),
+    };
+
     for _ in 0..batches {
         match write_type {
-            WriteType::All => write_all(data.clone(), &mut client).await?,
-            WriteType::Vec => writev(data.clone(), &mut client).await?,
-            WriteType::Buffer => write_buffer(data.clone(), &mut client).await?,
+            WriteType::All => write_all(data.clone(), &mut writer).await?,
+            WriteType::Vec => writev(data.clone(), &mut writer).await?,
+            WriteType::Buffer => write_buffer(data.clone(), &mut writer).await?,
         }
     }
     Ok(())
