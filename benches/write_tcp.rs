@@ -6,9 +6,9 @@ use tokio::{io::AsyncWriteExt, net::TcpStream};
 mod utils;
 
 fn criterion_benchmark(c: &mut Criterion) {
-    let data_batch = 1000;
+    let data_batch = 10;
     let data_size = 10000;
-    let batches = 10;
+    let batches = 1000;
     let prepare_data = || vec![Bytes::from(vec![0; data_size]); data_batch];
     let runtime = utils::new_tokio_runtime();
 
