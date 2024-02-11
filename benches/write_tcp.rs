@@ -1,7 +1,7 @@
 use bytes::Bytes;
 use criterion::{criterion_group, criterion_main, Criterion};
 use my_bench::{write_all, write_buffer, writev};
-use tokio::{io::AsyncWriteExt, net::TcpStream};
+use tokio::net::TcpStream;
 
 mod utils;
 
@@ -42,12 +42,12 @@ fn criterion_benchmark(c: &mut Criterion) {
             let data = prepare_data();
             async move {
                 let writer = TcpStream::connect("[::1]:8080").await.unwrap();
-                let mut buffer_writer = tokio::io::BufWriter::with_capacity(100000, writer);
+                let mut buffer_writer =
+                    tokio::io::BufWriter::with_capacity(data_batch * data_size, writer);
                 for _ in 0..batches {
                     write_buffer(data.clone(), &mut buffer_writer)
                         .await
                         .unwrap();
-                    buffer_writer.flush().await.unwrap();
                 }
             }
         });
