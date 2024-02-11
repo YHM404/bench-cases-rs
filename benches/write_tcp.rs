@@ -1,14 +1,14 @@
 use bytes::Bytes;
 use criterion::{criterion_group, criterion_main, Criterion};
 use my_bench::{write_all, write_buffer, writev};
-use tokio::net::TcpStream;
+use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 mod utils;
 
 fn criterion_benchmark(c: &mut Criterion) {
     let data_batch = 1000;
-    let data_size = 1000;
-    let batches = 500;
+    let data_size = 10000;
+    let batches = 10;
     let prepare_data = || vec![Bytes::from(vec![0; data_size]); data_batch];
     let runtime = utils::new_tokio_runtime();
 
@@ -21,6 +21,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                 for _ in 0..batches {
                     write_all(data.clone(), &mut writer).await.unwrap();
                 }
+                writer.flush().await.unwrap();
             }
         });
     });
@@ -33,6 +34,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                 for _ in 0..batches {
                     writev(data.clone(), &mut writer).await.unwrap();
                 }
+                writer.flush().await.unwrap();
             }
         });
     });
@@ -42,13 +44,13 @@ fn criterion_benchmark(c: &mut Criterion) {
             let data = prepare_data();
             async move {
                 let writer = TcpStream::connect("[::1]:8080").await.unwrap();
-                let mut buffer_writer =
-                    tokio::io::BufWriter::with_capacity(data_batch * data_size, writer);
+                let mut buffer_writer = tokio::io::BufWriter::with_capacity(1000000, writer);
                 for _ in 0..batches {
                     write_buffer(data.clone(), &mut buffer_writer)
                         .await
                         .unwrap();
                 }
+                buffer_writer.flush().await.unwrap();
             }
         });
     });

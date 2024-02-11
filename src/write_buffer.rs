@@ -6,6 +6,5 @@ pub async fn write_buffer(bufs: Vec<Bytes>, writer: &mut (dyn AsyncWrite + Unpin
     for b in bufs {
         writer.write_all(&b).await?;
     }
-    writer.flush().await?;
     Ok(())
 }

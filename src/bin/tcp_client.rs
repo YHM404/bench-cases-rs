@@ -3,7 +3,7 @@ use bytes::Bytes;
 use clap::{command, Parser};
 use my_bench::{write_all, write_buffer, writev};
 use tokio::{
-    io::{AsyncWrite, BufWriter},
+    io::{AsyncWrite, AsyncWriteExt, BufWriter},
     net::TcpStream,
 };
 
@@ -26,7 +26,7 @@ struct Args {
     #[arg(long, default_value_t = 1000)]
     data_size: usize,
 
-    #[arg(long, default_value_t = 1000)]
+    #[arg(long, default_value_t = 500)]
     batches: usize,
 }
 
@@ -53,5 +53,6 @@ async fn main() -> Result<()> {
             WriteType::Buffer => write_buffer(data.clone(), &mut writer).await?,
         }
     }
+    writer.flush().await?;
     Ok(())
 }
